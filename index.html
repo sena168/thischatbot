@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="thisbotaigirl-ico.jpg" />
+    <title>Thisbot with DeepSeek</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+        background-image: url('thisbotaigirl.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        background-attachment: fixed;
+        position: relative;
+      }
+      body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: -1;
+      }
+      #chat {
+        border: 1px solid #ccc;
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      #input-container {
+        display: flex;
+      }
+      #question {
+        flex: 1;
+        padding: 10px;
+      }
+      #send {
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      #send:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .message {
+        margin-bottom: 10px;
+      }
+      .user {
+        text-align: right;
+        color: blue;
+      }
+      .ai {
+        text-align: left;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Thisbot by sena with DeepSeek</h1>
+    <h2>selamat siang kak Inge! Apa kabarnya?</h2>
+    <div id="chat"></div>
+    <div id="input-container">
+      <input type="text" id="question" placeholder="Enter your question" />
+      <button id="send">Send</button>
+    </div>
+    <script>
+      const chat = document.getElementById('chat');
+      const questionInput = document.getElementById('question');
+      const sendButton = document.getElementById('send');
+
+      sendButton.addEventListener('click', async () => {
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        // Disable button
+        sendButton.disabled = true;
+
+        // Add user message
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user';
+        userMessage.textContent = question;
+        chat.appendChild(userMessage);
+        questionInput.value = '';
+
+        // Add AI response placeholder
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'message ai';
+        aiMessage.textContent = 'Thinking...';
+        chat.appendChild(aiMessage);
+
+        try {
+          // Call our backend API
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question }),
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            aiMessage.textContent = 'Error: ' + data.error;
+          } else {
+            aiMessage.textContent = data.answer;
+          }
+        } catch (error) {
+          aiMessage.textContent = 'Error: ' + error.message;
+        }
+
+        // Re-enable button
+        sendButton.disabled = false;
+        chat.scrollTop = chat.scrollHeight;
+      });
+
+      questionInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !sendButton.disabled) {
+          sendButton.click();
+        }
+      });
+    </script>
+  </body>
+</html>
